@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const Property = require('../models/Property');
+const User = require('../models/User');
+const Contact = require('../models/Contact');
 
 // In-memory admin credentials (replace with database in production)
 const adminCredentials = {
@@ -36,16 +39,36 @@ const login = async(req, res) => {
     }
 };
 
-const getDashboard = (req, res) => {
-    res.json({
-        message: 'Welcome to admin dashboard',
-        data: {
-            totalProperties: 156,
-            activeUsers: 2847,
-            monthlyViews: 12456,
-            pendingApprovals: 23
-        }
-    });
+const getDashboard = async(req, res) => {
+    try {
+        // Get real statistics from database
+        const totalProperties = await Property.countDocuments();
+        const availableProperties = await Property.countDocuments({ status: 'available' });
+        const totalUsers = await User.countDocuments();
+        const totalContacts = await Contact.countDocuments();
+        const unreadContacts = await Contact.countDocuments({ status: 'unread' });
+
+        // Get recent properties (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const recentProperties = await Property.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+
+        res.json({
+            message: 'Welcome to admin dashboard',
+            data: {
+                totalProperties,
+                availableProperties,
+                totalUsers,
+                totalContacts,
+                unreadContacts,
+                recentProperties,
+                revenue: 0 // You can implement revenue tracking later
+            }
+        });
+    } catch (error) {
+        console.error('Dashboard error:', error);
+        res.status(500).json({ message: 'Error fetching dashboard data' });
+    }
 };
 
 module.exports = { login, getDashboard };

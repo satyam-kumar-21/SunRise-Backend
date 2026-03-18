@@ -1,68 +1,96 @@
-const properties = []; // In-memory storage for demo
+const mongoose = require('mongoose');
 
-class Property {
-    constructor(id, title, description, price, type, category, location, images = [], status = 'active') {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.type = type; // 'sale' or 'rent'
-        this.category = category; // 'residential' or 'commercial'
-        this.location = location;
-        this.images = images;
-        this.status = status;
-        this.createdAt = new Date();
-    }
+const propertySchema = new mongoose.Schema({
+    status: {
+        type: String,
+        required: true,
+        enum: ['available', 'sold', 'rented']
+    },
+    propertyType: {
+        type: String,
+        required: true,
+        enum: ['apartment', 'villa', 'plot', 'commercial']
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    area: {
+        type: Number,
+        required: true
+    },
+    plotArea: {
+        type: Number
+    },
+    bedroom: {
+        type: Number
+    },
+    transaction: {
+        type: String,
+        enum: ['', 'sale', 'rent'],
+        default: ''
+    },
+    furnishing: {
+        type: String,
+        enum: ['', 'furnished', 'semi-furnished', 'unfurnished'],
+        default: ''
+    },
+    propertyAge: {
+        type: String
+    },
+    // Location Information
+    flatNo: {
+        type: String
+    },
+    propertyName: {
+        type: String
+    },
+    buildingName: {
+        type: String
+    },
+    street: {
+        type: String
+    },
+    landmark: {
+        type: String
+    },
+    pinCode: {
+        type: String
+    },
+    address: {
+        type: String
+    },
+    city: {
+        type: String,
+        required: true
+    },
+    location: {
+        type: String,
+        required: true
+    },
+    propertyDescription: {
+        type: String
+    },
+    detailedInformation: {
+        type: String
+    },
+    amenities: [{
+        type: String
+    }],
+    youtubeUrl: {
+        type: String
+    },
+    images: [{
+        type: String
+    }]
+}, {
+    timestamps: true
+});
 
-    static findAll() {
-        return properties;
-    }
+// Add indexes for better query performance
+propertySchema.index({ status: 1 });
+propertySchema.index({ propertyType: 1 });
+propertySchema.index({ city: 1 });
+propertySchema.index({ location: 1 });
 
-    static findById(id) {
-        return properties.find(property => property.id === id);
-    }
-
-    static findByType(type) {
-        return properties.filter(property => property.type === type);
-    }
-
-    static findByCategory(category) {
-        return properties.filter(property => property.category === category);
-    }
-
-    static create(propertyData) {
-        const id = properties.length + 1;
-        const property = new Property(
-            id,
-            propertyData.title,
-            propertyData.description,
-            propertyData.price,
-            propertyData.type,
-            propertyData.category,
-            propertyData.location,
-            propertyData.images,
-            propertyData.status
-        );
-        properties.push(property);
-        return property;
-    }
-
-    static update(id, propertyData) {
-        const property = this.findById(id);
-        if (property) {
-            Object.assign(property, propertyData);
-            return property;
-        }
-        return null;
-    }
-
-    static delete(id) {
-        const index = properties.findIndex(property => property.id === id);
-        if (index !== -1) {
-            return properties.splice(index, 1)[0];
-        }
-        return null;
-    }
-}
-
-module.exports = Property;
+module.exports = mongoose.model('Property', propertySchema);

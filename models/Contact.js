@@ -1,45 +1,37 @@
-const contacts = []; // In-memory storage for demo
+const mongoose = require('mongoose');
 
-class Contact {
-    constructor(id, name, email, phone, message) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.message = message;
-        this.createdAt = new Date();
-        this.status = 'unread'; // 'unread', 'read', 'responded'
+const contactSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true
+    },
+    phone: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    message: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['unread', 'read', 'responded'],
+        default: 'unread'
     }
+}, {
+    timestamps: true
+});
 
-    static findAll() {
-        return contacts;
-    }
+// Add indexes for better query performance
+contactSchema.index({ status: 1 });
+contactSchema.index({ createdAt: -1 });
 
-    static findById(id) {
-        return contacts.find(contact => contact.id === id);
-    }
-
-    static create(contactData) {
-        const id = contacts.length + 1;
-        const contact = new Contact(
-            id,
-            contactData.name,
-            contactData.email,
-            contactData.phone,
-            contactData.message
-        );
-        contacts.push(contact);
-        return contact;
-    }
-
-    static updateStatus(id, status) {
-        const contact = this.findById(id);
-        if (contact) {
-            contact.status = status;
-            return contact;
-        }
-        return null;
-    }
-}
-
-module.exports = Contact;
+module.exports = mongoose.model('Contact', contactSchema);
