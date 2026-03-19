@@ -23,26 +23,54 @@ const getContactById = async(req, res) => {
     }
 };
 
+const nodemailer = require('nodemailer');
+
 const createContact = async(req, res) => {
     try {
         const { name, email, phone, message, propertyId, propertyTitle } = req.body;
 
-        // Create contact with property information if provided
+        const isPropertyInquiry = !!propertyId;
+        const finalMessage = isPropertyInquiry ? 
+            `Property Inquiry: ${propertyTitle}\n\n${message}` : message;
+
         const contactData = {
             name,
             email,
             phone,
-            message: propertyId ?
-                `Property Inquiry: ${propertyTitle}\n\n${message}` : message
+            message: finalMessage
         };
 
         const contact = new Contact(contactData);
         await contact.save();
 
+        // Email Sending Logic
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // You can change service as needed
+            auth: {
+                user: process.env.EMAIL_USER || 'your_email@gmail.com',
+                pass: process.env.EMAIL_PASS || 'your_email_app_password',
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER || 'your_email@gmail.com',
+            to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'sunriseproperties@gmail.com',
+            subject: isPropertyInquiry ? `New Property Inquiry: ${propertyTitle}` : 'New General Contact Inquiry',
+            text: `You have received a new message from ${name}.\n\nContact Details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${finalMessage}`,
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Email sent successfully');
+        } catch (emailError) {
+            console.error('Error sending email:', emailError);
+            // We still want to return success to the user even if email fails, because it's saved in DB
+        }
+
         res.status(201).json({
             message: 'Message sent successfully',
             contact,
-            isPropertyInquiry: !!propertyId
+            isPropertyInquiry
         });
     } catch (error) {
         console.error('Error creating contact:', error);

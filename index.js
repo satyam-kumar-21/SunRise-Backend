@@ -15,12 +15,10 @@ app.use(express.json());
 
 // Routes
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
 const propertyRoutes = require('./routes/properties');
 const contactRoutes = require('./routes/contact');
 
 app.use('/api/admin', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/contact', contactRoutes);
 

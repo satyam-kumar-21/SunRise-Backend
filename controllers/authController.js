@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Property = require('../models/Property');
-const User = require('../models/User');
 const Contact = require('../models/Contact');
 
 // In-memory admin credentials (replace with database in production)
@@ -44,7 +43,6 @@ const getDashboard = async(req, res) => {
         // Get real statistics from database
         const totalProperties = await Property.countDocuments();
         const availableProperties = await Property.countDocuments({ status: 'available' });
-        const totalUsers = await User.countDocuments();
         const totalContacts = await Contact.countDocuments();
         const unreadContacts = await Contact.countDocuments({ status: 'unread' });
 
@@ -58,7 +56,6 @@ const getDashboard = async(req, res) => {
             data: {
                 totalProperties,
                 availableProperties,
-                totalUsers,
                 totalContacts,
                 unreadContacts,
                 recentProperties,
