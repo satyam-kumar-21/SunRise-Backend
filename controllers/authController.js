@@ -2,6 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Property = require('../models/Property');
 const Contact = require('../models/Contact');
+const Investment = require('../models/Investment');
+const Project = require('../models/Project');
+const SubmittedProperty = require('../models/SubmittedProperty');
 
 // In-memory admin credentials (replace with database in production)
 const adminCredentials = {
@@ -45,6 +48,10 @@ const getDashboard = async(req, res) => {
         const availableProperties = await Property.countDocuments({ status: 'available' });
         const totalContacts = await Contact.countDocuments();
         const unreadContacts = await Contact.countDocuments({ status: 'unread' });
+        const totalInvestments = await Investment.countDocuments();
+        const totalProjects = await Project.countDocuments();
+        const totalSubmissions = await SubmittedProperty.countDocuments();
+        const pendingSubmissions = await SubmittedProperty.countDocuments({ status: 'pending' });
 
         // Get recent properties (last 30 days)
         const thirtyDaysAgo = new Date();
@@ -59,7 +66,11 @@ const getDashboard = async(req, res) => {
                 totalContacts,
                 unreadContacts,
                 recentProperties,
-                revenue: 0 // You can implement revenue tracking later
+                totalInvestments,
+                totalProjects,
+                totalSubmissions,
+                pendingSubmissions,
+                revenue: 0
             }
         });
     } catch (error) {
